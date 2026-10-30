@@ -1,63 +1,137 @@
+# Assignment 6: Data Preprocessing
+# Dataset: array.xlsx
+# Libraries: Pandas and NumPy
+
 import pandas as pd
+import numpy as np
+from pathlib import Path
 
-# Create sample dataset
-data = {
-    'Name': ['Amit', 'Riya', 'Rahul', 'Sneha', 'Amit'],
-    'Marks': [85, 90, None, 78, 85],
-    'City': ['Mumbai', 'Pune', 'Delhi', None, 'Mumbai'],
-    'Age': [18, 19, 18, 20, 18]
-}
 
-df = pd.DataFrame(data)
+# --------------------------------------------------
+# 1. AUTOMATICALLY DETECT AND LOAD THE INPUT FILE
+# --------------------------------------------------
 
-# Display original dataset
-print("Original Dataset:")
-print(df)
+folder_path = Path(__file__).resolve().parent
 
-# Explore dataset
-print("\nFirst Five Rows:")
+# Supported file formats
+supported_extensions = [".xlsx", ".xls", ".csv"]
+
+input_file = None
+
+for extension in supported_extensions:
+    candidate = folder_path / ("array" + extension)
+    if candidate.exists():
+        input_file = candidate
+        break
+
+if input_file is None:
+    raise FileNotFoundError(
+        "Dataset not found! Please keep array.xlsx, array.xls "
+        "or array.csv in the same folder as this Python file."
+    )
+
+
+def load_dataset(file_path):
+
+    file_extension = file_path.suffix.lower()
+
+    if file_extension == ".csv":
+        return pd.read_csv(file_path)
+
+    elif file_extension in [".xls", ".xlsx"]:
+        return pd.read_excel(file_path)
+
+    else:
+        raise ValueError("Unsupported file format!")
+
+
+# Load dataset
+df = load_dataset(input_file)
+
+# Clean column names
+df.columns = df.columns.astype(str).str.strip()
+
+print("=" * 60)
+print(" ASSIGNMENT 6: DATA PREPROCESSING")
+print("=" * 60)
+
+print("\nInput File:", input_file.name)
+
+
+# --------------------------------------------------
+# 2. DISPLAY ORIGINAL DATASET
+# --------------------------------------------------
+
+print("\n1. ORIGINAL DATASET")
+print("-" * 60)
+
+print(df.to_string(index=False))
+
+print("\nNumber of Rows:", df.shape[0])
+print("Number of Columns:", df.shape[1])
+
+
+# --------------------------------------------------
+# 3. DISPLAY FIRST FIVE RECORDS
+# --------------------------------------------------
+
+print("\n2. FIRST FIVE RECORDS")
+print("-" * 60)
+
 print(df.head())
 
-print("\nDataset Information:")
+
+# --------------------------------------------------
+# 4. DISPLAY DATASET INFORMATION
+# --------------------------------------------------
+
+print("\n3. DATASET INFORMATION")
+print("-" * 60)
+
 df.info()
 
-print("\nStatistical Summary:")
-print(df.describe())
 
-# Check missing values
-print("\nMissing Values:")
-print(df.isnull().sum())
+# --------------------------------------------------
+# 5. BASIC DATA CLEANING
+# --------------------------------------------------
 
-# Handle missing values
-df['Marks'] = df['Marks'].fillna(df['Marks'].mean())
-df['City'] = df['City'].fillna('Unknown')
+# Remove unwanted spaces from text columns
+for column in df.select_dtypes(include=["object", "string"]).columns:
 
-print("\nAfter Handling Missing Values:")
-print(df)
+    df[column] = df[column].astype("string").str.strip()
 
-# Identify duplicate records
-print("\nDuplicate Records:")
-print(df[df.duplicated()])
+    # Convert empty strings into missing values
+    df[column] = df[column].replace("", np.nan)
 
-# Remove duplicate records
-df = df.drop_duplicates()
 
-print("\nAfter Removing Duplicates:")
-print(df)
+# --------------------------------------------------
+# 6. DATA TYPE CONVERSION
+# --------------------------------------------------
 
-# Remove irrelevant column
-df = df.drop(columns=['Age'])
+print("\n4. DATA TYPE CONVERSION")
+print("-" * 60)
 
-print("\nAfter Removing Irrelevant Column:")
-print(df)
+# Convert Age and Marks into numerical data
+for column in df.columns:
 
-# Select students scoring more than 80
-result = df.loc[df['Marks'] > 80]
+    if column.strip().lower() in ["age", "marks"]:
 
-print("\nStudents Scoring More Than 80:")
-print(result)
+        df[column] = pd.to_numeric(df[column], errors="coerce")
 
-# Save cleaned dataset
-df.to_csv('cleaned_students.csv', index=False)
+        # Handle infinite values as missing values
+        df[column] = df[column].replace(
+            [np.inf, -np.inf], np.nan
+        )
 
-print("\nCleaned dataset saved successfully!")
+        print(column, "converted to numerical data type.")
+
+print("\nData Types After Conversion:")
+print(df.dtypes)
+
+
+# --------------------------------------------------
+# 7. IDENTIFY MISSING VALUES
+# --------------------------------------------------
+
+print("\n5. MISSING VALUES")
+print("-" * 60)
