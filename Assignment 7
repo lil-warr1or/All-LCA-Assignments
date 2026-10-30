@@ -4,22 +4,8 @@ import seaborn as sns
 
 #Assignment 7
 
-# Create sample dataset
-data = {
-    "Student": ["Amit", "Bhavna", "Chetan", "Diya", "Esha", "Farhan"],
-    "Maths": [75, 82, 68, 90, 72, 85],
-    "Python": [80, 78, 70, 92, 75, 88],
-    "Attendance": [85, 90, 78, 95, 80, 92],
-    "City": ["Pune", "Mumbai", "Pune", "Nashik", "Mumbai", "Pune"]
-}
-
-df = pd.DataFrame(data)
-
-# Save dataset as CSV
-df.to_csv("sample_data_assignment_07.csv", index=False)
-
 # Load CSV dataset
-df = pd.read_csv("sample_data_assignment_07.csv")
+df = pd.read_csv("CSV_file.csv")
 
 # Display dataset
 print("Dataset:")
